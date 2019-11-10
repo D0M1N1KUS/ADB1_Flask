@@ -102,3 +102,15 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+.DS_Store
+.flaskenv
+*.pyc
+*.pyo
+env*
+_mailinglist
+.cache/
+.idea/
+
+# Coverage reports
+*,cover
