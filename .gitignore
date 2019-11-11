@@ -114,3 +114,5 @@ _mailinglist
 
 # Coverage reports
 *,cover
+
+frontend/node_modules

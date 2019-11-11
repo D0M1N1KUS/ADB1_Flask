@@ -2,7 +2,7 @@
 #
 # os.environ['DEBUG'] = "1"
 
-POSTGRES_URL = '192.168.99.102:32768'
+POSTGRES_URL = 'localhost:32768'
 POSTGRES_USER = 'postgres'
 POSTGRES_PW = ''
 POSTGRES_DB = 'abd'
