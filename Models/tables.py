@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import JSON
 class Zgloszenia(db.Model):
     __tablename__ = 'zgloszenia'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=True)
     powod = db.Column(db.VARCHAR)
     organScigania = db.Column(db.VARCHAR)
 
@@ -20,7 +20,8 @@ class Zgloszenia(db.Model):
 class Czynnosci(db.Model):
     __tablename__ = 'czynnosci'
 
-    nazwa = db.Column(db.VARCHAR, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=True)
+    nazwa = db.Column(db.VARCHAR)
     punktacja = db.Column(db.Integer)
 
     def __init__(self, nazwa, punktacja):
@@ -34,7 +35,7 @@ class Czynnosci(db.Model):
 class Aktywnosci(db.Model):
     __tablename__ = 'aktywnosci'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=True)
     dataAktywnosci = db.Column(db.DateTime)
     idPracownika = db.Column(db.Integer, db.ForeignKey('pracownicy.id'))
 
@@ -49,7 +50,7 @@ class Aktywnosci(db.Model):
 class Pracownicy(db.Model):
     __tablename__ = 'pracownicy'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=True)
     # aktywnosci = db.relationship('aktywnosci', backref='pracownicy', lazy=True)
     login = db.Column(db.VARCHAR)
     stanowisko = db.Column(db.VARCHAR)
@@ -67,7 +68,7 @@ class Pracownicy(db.Model):
 class Adresy(db.Model):
     __tablename__ = 'adresy'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=True)
     ulica = db.Column(db.VARCHAR)
     miasto = db.Column(db.VARCHAR)
     kodPocztowy = db.Column(db.VARCHAR)
@@ -84,7 +85,7 @@ class Adresy(db.Model):
 class Uzytkownicy(db.Model):
     __tablename__ = 'uzytkownicy'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=True)
     imie = db.Column(db.VARCHAR)
     nazwisko = db.Column(db.VARCHAR)
     pesel = db.Column(db.VARCHAR)
@@ -105,11 +106,11 @@ class Uzytkownicy(db.Model):
 class KlienciIndywidualni(db.Model):
     __tablename__ = 'klienciindywidualni'
 
-    id = db.Column(db.Integer, primary_key=True)
-    klient = db.relationship('kleinci')
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=True)
+    klient = db.relationship('klienci')
 
     def __init__(self):
-        x = 0
+        pass
 
     def __repr__(self):
         return '<id {}'.format(self.id)
@@ -118,14 +119,14 @@ class KlienciIndywidualni(db.Model):
 class Klienci(db.Model):
     __tablename__ = 'klienci'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=True)
     idUzytkownika = db.Column(db.Integer, db.ForeignKey('uzytkownicy.id'))
-    idFilmy = db.Column(db.Integer, db.ForeignKey('firmy.id'))
+    idFirmy = db.Column(db.Integer, db.ForeignKey('firmy.id'))
     idKlientaIndywidualnego = db.Column(db.Integer, db.ForeignKey('klienciindywidualni.id'))
 
     def __init__(self, idUzytkownika, idFilmy, idKlientaIndywidualnego):
         self.idUzytkownika = idUzytkownika
-        self.idFilmy = idFilmy
+        self.idFirmy = idFilmy
         self.idKlientaIndywidualnego = idKlientaIndywidualnego
 
     def __repr__(self):
@@ -135,7 +136,7 @@ class Klienci(db.Model):
 class Firmy(db.Model):
     __tablename__ = 'firmy'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=True)
     nazwa = db.Column(db.VARCHAR)
     nip = db.Column(db.VARCHAR)
 
@@ -150,21 +151,38 @@ class Firmy(db.Model):
 class Wnioski(db.Model):
     __tablename__ = 'wnioski'
 
-    numerWniosku = db.Column(db.Integer, primary_key=True)
+    numerWniosku = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=True)
     decyzja = db.Column(db.VARCHAR)
-    klient = db.Column(db.Integer)
+    klient = db.Column(db.Integer, db.ForeignKey('klienci.id'))
+    pracownik = db.Column(db.Integer, db.ForeignKey('pracownicy.id'), nullable=True)
     wskPrzeterminowania = db.Column(db.DateTime)
     kwota = db.Column(db.FLOAT(precision=2))
-    rodzajWeryfikacji = db.Column(db.VARCHAR)
-    zgloszenieId = db.Column(db.Integer)
+    rodzajWeryfikacji = db.Column(db.VARCHAR, nullable=True)
+    zgloszenieId = db.Column(db.Integer, nullable=True)
 
-    def __init__(self, devyzja, klient, wskPrzetwarzania, kwota, rodzajWeryfikacji, zgloszeniaId):
-        self.decyzja = devyzja
+    def __init__(self, decyzja, klient, pracownik, wskPrzetwarzania, kwota, rodzajWeryfikacji, zgloszeniaId):
+        self.decyzja = decyzja
         self.klient = klient
+        self.pracownik = pracownik
         self.wskPrzeterminowania = wskPrzetwarzania
         self.kwota = kwota
         self.rodzajWeryfikacji = rodzajWeryfikacji
         self.zgloszenieId = zgloszeniaId
+
+    def __repr__(self):
+        return '<id {}'.format(self.id)
+
+
+class Hasla(db.Model):
+    __tablename__ = 'hasla'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=True)
+    haslo = db.Column(db.VARCHAR)
+    id_uzytkownika = db.Column(db.Integer, db.ForeignKey('pracownicy.id'))
+
+    def __init__(self, haslo, id_uzytkownika):
+        self.haslo = haslo
+        self.id_uzytkownika = id_uzytkownika
 
     def __repr__(self):
         return '<id {}'.format(self.id)

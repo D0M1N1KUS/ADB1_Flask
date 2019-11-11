@@ -1,0 +1,28 @@
+{% extends 'Base.html' %}
+
+{% block head %}
+<h1>Dodawanie nowego wniosku</h1>
+{% endblock %}
+
+{% block body %}
+<form action="/DodajWniosek" method="post">
+    <select name="typ_klienta">
+        <option value="indywidualny">Klient Indywidualny</option>
+        <option value="firma">Firma</option>
+    </select>
+    Imie<input type="text" name="imie" content="Imie"><br>
+    Nazwisko<input type="text" name="nazwisko" content="nazwisko"><br>
+    PESEL<input type="text" name="pesel" content="pesel">
+    <p>Adres zameldowania</p>
+    Ulica<input type="text" name="az_ulica" content="ulica"><br>
+    Miasto<input type="text" name="az_miasto" content="miasto"><br>
+    Kod pocztowy<input type="text" name="az_kod_pocztowy" content="kod_pocztowy">
+
+    <p>Adres korespondencji</p>
+    Ulica<input type="text" name="ak_ulica" content="ulica"><br>
+    Miasto<input type="text" name="ak_miasto" content="miasto"><br>
+    Kod pocztowy<input type="text" name="ak_kod_pocztowy" content="kod_pocztowy">
+    <br><br>
+    <input type="submit" value="dodaj_wniosek">
+</form>
+{% endblock %}

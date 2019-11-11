@@ -1,4 +1,4 @@
-from Backend.DataClasses import Uzytkownik
+from Backend.DataClasses.Uzytkownik import Uzytkownik
 from Backend.DataClasses.IKlient import IKlient
 
 
@@ -8,7 +8,7 @@ class KlientFirmowy(Uzytkownik, IKlient):
     klientFirmowy_id = None
 
     def __init__(self, uzytkownik, nazwa, nip, klientFirmowy_id):
-        Uzytkownik.Uzytkownik.__init__(uzytkownik, uzytkownik)
+        Uzytkownik.Uzytkownik.__init__(self, uzytkownik)
         self.nazwa = nazwa
         self.nip = nip
         self.klientFirmowy_id = klientFirmowy_id

@@ -1,0 +1,28 @@
+{% extends 'Base.html' %}
+
+{% block head %}
+    <h1>Wnioski<h1>
+{% endblock %}
+
+{% block body %}
+    <div class="content_table">
+        <table>
+            <tr>
+                <th>Numer wniosku</th>
+                <th>Klient</th>
+                <th>Status</th>
+                <th>Pracownik</th>
+                <th>Akcja</th>
+            </tr>
+            {% for item in wnioski %}
+            <tr>
+                <td>{{ item[0] }}</td>
+                <td>{{ item[2] }}</td>
+                <td></td>
+            </tr>
+            {% endfor %}
+        </table>
+
+    <form action="/wnioski/" method="POST">
+
+{% endblock %}

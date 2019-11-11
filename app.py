@@ -1,7 +1,8 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api
 import config
+import jinja2
 
 # Remember to install the necessary stuff: pip install -r requirements.txt
 
@@ -17,11 +18,7 @@ db.init_app(app)
 
 api = Api(app)
 
-#
-# @app.route('/')
-# def index():
-#     return render_template('index.html')
-
+import routing
 
 if __name__ == '__main__':
     app.run(debug=True)

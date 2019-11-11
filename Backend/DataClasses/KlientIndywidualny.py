@@ -1,4 +1,4 @@
-from Backend.DataClasses import Uzytkownik
+from Backend.DataClasses.Uzytkownik import Uzytkownik
 from Backend.DataClasses.IKlient import IKlient
 
 
