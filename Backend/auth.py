@@ -3,10 +3,15 @@ from db import DbContainer
 from tables import Uzytkownicy, Hasla, Adresy
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 from flask import Blueprint, redirect, session, request, flash, jsonify, g
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+import config
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+# db_engine = create_engine(config.DB_URL)
 
 
 def login_required(view):
@@ -52,43 +57,43 @@ def register():
         error = None
 
         # dbase = declarative_base()
-        Session = sessionmaker(bind=db)
-        reg_session = Session()
+        # Session = sessionmaker(bind=db)
+        # reg_session = Session()
         # dbase.metadata.create_all(db)
 
         if not username:
             error = "Username is required."
         elif not password:
             error = "Password is required."
-        else:
+        # else:
             # db.execute("SELECT id FROM uzytkownicy WHERE username = ?", (username,)).fetchone
             # found_user = reg_session.query(Uzytkownicy).filter_by(Uzytkownicy.login == username)
             # found_user = reg_session.query(Uzytkownicy)
-            found_user = Uzytkownicy.query().all()
-
-            if found_user is not None:
-                error = "User {0} is already registered.".format(username)
+            # found_user = db.session.query(Uzytkownicy).all()
+            #
+            # if found_user is not None:
+            #     error = "User {0} is already registered.".format(username)
 
         if error is None:
             # the name is available, store it in the database and go to
             # the login page
-            try:
-                # new_address = Adresy(ulica="Jedynasta", miasto="Jedynascie", kodPocztowy="11-111")
-                # reg_session.add(new_address)
-                # reg_session.flush()
-                #
-                # address = reg_session.query(Adresy).filter(
-                #     Adresy.ulica == "Jedynasta" and Adresy.miasto == "Jedynascie" and
-                #     Adresy.kodPocztowy == "11-111").one()
-                #
-                # new_user = Uzytkownicy(imie="Jan", nazwisko="Kowaslki", pesel="01234567890",
-                #                        adresZamieszkania=address.id,
-                #                        adresZameldowania=address.id, login=username, password=password)
-                # reg_session.add(new_user)
-                # reg_session.commit()
-                return {"registered": "true"}  # redirect("auth.login")
-            except:
-                print('Something went wrong')
+            # try:
+            new_address = Adresy(ulica="Jedynasta", miasto="Jedynascie", kodPocztowy="11-111")
+            db.session.add(new_address)
+            db.session.flush()
+
+            address = db.session.query(Adresy).filter(
+                Adresy.ulica == "Jedynasta" and Adresy.miasto == "Jedynascie" and
+                Adresy.kodPocztowy == "11-111").one()
+
+            new_user = Uzytkownicy(imie="Jan", nazwisko="Kowaslki", pesel="01234567890",
+                                   adresZamieszkania=address.id,
+                                   adresZameldowania=address.id, login=username, haslo=password)
+            db.session.add(new_user)
+            db.session.commit()
+            return {"registered": "true"}  # redirect("auth.login")
+            # except:
+            #    print('Something went wrong')
 
         flash(error)
 

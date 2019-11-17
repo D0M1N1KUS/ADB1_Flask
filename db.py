@@ -3,6 +3,7 @@ import psycopg2
 from flask_sqlalchemy import SQLAlchemy
 import config
 
+
 class DbContainer:
 
     db = None
