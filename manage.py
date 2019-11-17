@@ -1,6 +1,10 @@
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
-from app import app, db
+from db import DbContainer
+import tables
+
+app = DbContainer.get_app()
+db = DbContainer.get_db()
 
 migrate = Migrate(app, db)
 manager = Manager(app)

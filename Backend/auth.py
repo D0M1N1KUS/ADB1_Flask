@@ -1,6 +1,6 @@
 import functools
-from db import get_db
-from app import Uzytkownicy, Hasla, Adresy
+from db import DbContainer
+from tables import Uzytkownicy, Hasla, Adresy
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 from flask import Blueprint, redirect, session, request, flash, g
 from sqlalchemy.ext.declarative import declarative_base
@@ -33,7 +33,7 @@ def load_logged_in_user():
         g.user = None
     else:
         g.user = (
-            get_db().execute("SELECT * FROM uzytkownicy WHERE id = ?", (user_id,)).fetchone()
+            DbContainer.get_db().execute("SELECT * FROM uzytkownicy WHERE id = ?", (user_id,)).fetchone()
         )
 
 
