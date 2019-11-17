@@ -111,7 +111,7 @@ class KlienciIndywidualni(t_db.Model):
     __tablename__ = 'klienciindywidualni'
 
     id = t_db.Column(t_db.Integer, primary_key=True, autoincrement=True, nullable=True)
-    klient = t_db.relationship('klienci')
+    klient = t_db.relationship('klienci.id')
 
     def __init__(self):
         pass

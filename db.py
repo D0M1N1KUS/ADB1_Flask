@@ -13,7 +13,7 @@ class DbContainer:
         if DbContainer.db is None:
             app = DbContainer.get_app()
             db = SQLAlchemy(app)
-            db.init_app(app)
+            # db.init_app(app)
             DbContainer.db = db
 
         return DbContainer.db
