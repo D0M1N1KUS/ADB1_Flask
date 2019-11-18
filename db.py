@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 import config
 
 
+
 class DbContainer:
 
     db = None
@@ -24,6 +25,7 @@ class DbContainer:
         if DbContainer.app is None:
             app = Flask(__name__)
             app.config['SECRET_KEY'] = 'ken sent  me'
+            app.secret_key = 'ken sent me'
             app.config['DEBUG'] = True
             # app.config.from_object(os.environ['APP_SETTINGS'])
             app.config['SQLALCHEMY_DATABASE_URI'] = config.DB_URL

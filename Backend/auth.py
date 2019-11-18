@@ -5,6 +5,7 @@ from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSign
 from flask import Blueprint, redirect, session, request, flash, jsonify, g
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 import config
@@ -56,44 +57,36 @@ def register():
         db = DbContainer.get_db()
         error = None
 
-        # dbase = declarative_base()
-        # Session = sessionmaker(bind=db)
-        # reg_session = Session()
-        # dbase.metadata.create_all(db)
-
         if not username:
             error = "Username is required."
         elif not password:
             error = "Password is required."
-        # else:
-            # db.execute("SELECT id FROM uzytkownicy WHERE username = ?", (username,)).fetchone
-            # found_user = reg_session.query(Uzytkownicy).filter_by(Uzytkownicy.login == username)
-            # found_user = reg_session.query(Uzytkownicy)
-            # found_user = db.session.query(Uzytkownicy).all()
-            #
-            # if found_user is not None:
-            #     error = "User {0} is already registered.".format(username)
+        else:
+            found_user = db.session.query(Uzytkownicy.login).filter(Uzytkownicy.login == username)
+
+            if found_user is not None:
+                error = "User {0} is already registered.".format(username)
 
         if error is None:
             # the name is available, store it in the database and go to
             # the login page
-            # try:
-            new_address = Adresy(ulica="Jedynasta", miasto="Jedynascie", kodPocztowy="11-111")
-            db.session.add(new_address)
-            db.session.flush()
+            try:
+                new_address = Adresy(ulica="Jedynasta", miasto="Jedynascie", kodPocztowy="11-111")
+                db.session.add(new_address)
+                db.session.flush()
 
-            address = db.session.query(Adresy).filter(
-                Adresy.ulica == "Jedynasta" and Adresy.miasto == "Jedynascie" and
-                Adresy.kodPocztowy == "11-111").one()
+                address = db.session.query(Adresy).filter(
+                    Adresy.ulica == "Jedynasta" and Adresy.miasto == "Jedynascie" and
+                    Adresy.kodPocztowy == "11-111").one()
 
-            new_user = Uzytkownicy(imie="Jan", nazwisko="Kowaslki", pesel="01234567890",
-                                   adresZamieszkania=address.id,
-                                   adresZameldowania=address.id, login=username, haslo=password)
-            db.session.add(new_user)
-            db.session.commit()
-            return {"registered": "true"}  # redirect("auth.login")
-            # except:
-            #    print('Something went wrong')
+                new_user = Uzytkownicy(imie="Jan", nazwisko="Kowaslki", pesel="01234567890",
+                                       adresZamieszkania=address.id,
+                                       adresZameldowania=address.id, login=username, haslo=password)
+                db.session.add(new_user)
+                db.session.commit()
+                return {"registered": "true"}  # redirect("auth.login")
+            except:
+                print('Something went wrong')
 
         flash(error)
 
@@ -104,13 +97,27 @@ def register():
 def login():
     """Log in a registered user by adding the user id to the session."""
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        json_request = None
+        # username = None
+        # password = None
+
+        try:
+            json_request = request.get_json()
+            username = json_request["username"]
+            password = json_request["password"]
+        except:
+            return {"error": "Invalid request."}, 400
+
         db = DbContainer.get_db()
         error = None
-        user = db.execute(
-            "SELECT * FROM uzytkownicy WHERE login = ?", (username,)
-        ).fetchone()
+        user = None
+        try:
+            user = db.session.query(Uzytkownicy).filter(Uzytkownicy.login == username).one()
+        except MultipleResultsFound as e:
+            print(f"Inconsistency detected: There are multiple users with the username \"{username}\"")
+            print(e)
+        except NoResultFound as e:
+            print(e)
 
         if user is None:
             error = "Incorrect username."
@@ -119,20 +126,35 @@ def login():
 
         if error is None:
             # store the user id in a new session and return to the index
+
             session.clear()
-            session["user_id"] = user["id"]
-            return {"login": "true"}  # redirect("index")
+            session[user.id] = user.id
+            return {"user_id": user.id}  # redirect("index")
 
         flash(error)
 
-    return {"login": "false"}  # render_template("auth/login.html")
+    return {"error": error}  # render_template("auth/login.html")
 
 
-@auth_bp.route("/logout")
+@auth_bp.route("/logout", methods=("POST", "GET"))
 def logout():
     """Clear the current session, including the stored user id."""
+    if request.method == "POST":
+        json_request = None
+        user_id = None
+        try:
+            json_request = request.get_json()
+            user_id = json_request["user_id"]
+        except:
+            return {"error": "Invalid request."}, 400
+
+        if user_id not in session:
+            return {"error": "Already logged out."}, 200
+
+        session.pop(user_id, None)
+
     session.clear()
-    return redirect("index")
+    return {"user_id": user_id}  # redirect("index")
 
 # class Authentication:
 #     db = None
