@@ -25,7 +25,7 @@ class Czynnosci(t_db.Model):
     __tablename__ = 'czynnosci'
 
     # id = t_db.Column(t_db.Integer, primary_key=True, autoincrement=True)
-    nazwa = t_db.Column(t_db.VARCHAR, primary_key=True,)
+    nazwa = t_db.Column(t_db.VARCHAR, primary_key=True)
     punktacja = t_db.Column(t_db.Integer)
 
     aktywnosci_rel = t_db.relationship("Aktywnosci", backref="czynnosci", uselist=False)
@@ -50,9 +50,10 @@ class Aktywnosci(t_db.Model):
 
     czynnosci_rel = t_db.relationship("Czynnosci", backref="aktywnosci", uselist=False)
 
-    def __init__(self, dataAktywnosci, idPracownika):
+    def __init__(self, dataAktywnosci, idPracownika, nazwaCzynnosci):
         self.dataAktywnosci = dataAktywnosci
         self.idPracownika = idPracownika
+        self.nazwa_czynnosci = nazwaCzynnosci
 
     def __repr__(self):
         return '<id {}'.format(self.id)
@@ -69,9 +70,10 @@ class Pracownicy(t_db.Model):
     uzytkownicy_rel = t_db.relationship("Uzytkownicy", backref="pracownicy", uselist=False)
     aktywnosci_rel = t_db.relationship("Aktywnosci", backref="pracownicy")
 
-    def __init__(self, stanowisko, uzytkownik):
+    def __init__(self, stanowisko, uzytkownik, login):
         self.stanowisko = stanowisko
         self.uzytkownik = uzytkownik
+        self.login
 
     def __repr__(self):
         return '<id {}'.format(self.id)
@@ -113,7 +115,7 @@ class Uzytkownicy(t_db.Model):
     adres_zameldowania_rel = t_db.relationship("Adresy", foreign_keys=[adres_zameldowania], uselist=False)
     klienci_rel = t_db.relationship("Klienci", backref="uzytkownicy", uselist=False)
 
-    def __init__(self, imie, nazwisko, pesel, adresZamieszkania, adresZameldowania, login, haslo):
+    def __init__(self, imie, nazwisko, pesel, adresZamieszkania, adresZameldowania, login, haslo, pracownik):
         self.imie = imie
         self.nazwisko = nazwisko
         self.pesel = pesel
@@ -121,6 +123,7 @@ class Uzytkownicy(t_db.Model):
         self.adres_zameldowania = adresZameldowania
         self.login = login
         self.haslo = haslo
+        self.pracownik = pracownik
 
     def __repr__(self):
         return '<id {}'.format(self.id)
@@ -194,14 +197,15 @@ class Wnioski(t_db.Model):
     klient_rel = t_db.relationship("Klienci", backref="wnioski")
     zgloszenia_rel = t_db.relationship("Zgloszenia", backref="wnioski", uselist=False)
 
-    def __init__(self, decyzja, klient, pracownik, wskPrzetwarzania, kwota, rodzajWeryfikacji, zgloszeniaId):
+    def __init__(self, numerWniosku, decyzja, klient, pracownik, wskPrzetwarzania, kwota, rodzajWeryfikacji, zgloszeniaId):
         self.decyzja = decyzja
-        self.klient = klient
+        self.klient_id = klient
         self.pracownik = pracownik
         self.wsk_przeterminowania = wskPrzetwarzania
         self.kwota = kwota
         self.rodzaj_weryfikacji = rodzajWeryfikacji
-        self.zgloszenieId = zgloszeniaId
+        self.zgloszenie_id = zgloszeniaId
+        self.numer_wniosku = numerWniosku
 
     def __repr__(self):
         return '<id {}'.format(self.id)
