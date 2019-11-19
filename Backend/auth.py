@@ -15,31 +15,31 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 # db_engine = create_engine(config.DB_URL)
 
 
-def login_required(view):
-    """View decorator that redirects anonymous users to the login page."""
+# def login_required(view):
+#     """View decorator that redirects anonymous users to the login page."""
+#
+#     @functools.wraps(view)
+#     def wrapped_view(**kwargs):
+#         if g.user is None:
+#             return redirect("index")
+#
+#         return view(**kwargs)
+#
+#     return wrapped_view
 
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if g.user is None:
-            return redirect("index")
 
-        return view(**kwargs)
-
-    return wrapped_view
-
-
-@auth_bp.before_app_request
-def load_logged_in_user():
-    """If a user id is stored in the session, load the user object from
-    the database into ``g.user``."""
-    user_id = session.get("user_id")
-
-    if user_id is None:
-        g.user = None
-    else:
-        g.user = (
-            DbContainer.get_db().execute("SELECT * FROM uzytkownicy WHERE id = ?", (user_id,)).fetchone()
-        )
+# @auth_bp.before_app_request
+# def load_logged_in_user():
+#     """If a user id is stored in the session, load the user object from
+#     the database into ``g.user``."""
+#     user_id = session.get("user_id")
+#
+#     if user_id is None:
+#         g.user = None
+#     else:
+#         g.user = (
+#             DbContainer.get_db().execute("SELECT * FROM uzytkownicy WHERE id = ?", (user_id,)).fetchone()
+#         )
 
 
 @auth_bp.route("/register", methods=("GET", "POST"))
@@ -49,13 +49,14 @@ def register():
     Validates that the username is not already taken. Hashes the
     password for security.
     """
+    error = None
+
     if request.method == "POST":
         print(request.is_json)
         json_request = request.get_json()
         username = json_request["username"]
         password = json_request["password"]
         db = DbContainer.get_db()
-        error = None
 
         if not username:
             error = "Username is required."
@@ -77,7 +78,7 @@ def register():
 
                 address = db.session.query(Adresy).filter(
                     Adresy.ulica == "Jedynasta" and Adresy.miasto == "Jedynascie" and
-                    Adresy.kodPocztowy == "11-111").one()
+                    Adresy.kod_pocztowy == "11-111").one()
 
                 new_user = Uzytkownicy(imie="Jan", nazwisko="Kowaslki", pesel="01234567890",
                                        adresZamieszkania=address.id,
@@ -89,8 +90,10 @@ def register():
                 print('Something went wrong')
 
         flash(error)
+    else:
+        error = "Unsupported method"
 
-    return {"registered": "false", "error": error}  # render_template("auth/register.html")
+    return {"error": error}  # render_template("auth/register.html")
 
 
 @auth_bp.route("/login", methods=("GET", "POST"))
@@ -146,7 +149,11 @@ def logout():
             json_request = request.get_json()
             user_id = json_request["user_id"]
         except:
-            return {"error": "Invalid request."}, 400
+            return {"error": "Invalid request data."}, 400
+        db = DbContainer.get_db()
+        db.session.query(Uzytkownicy, Adresy).filter(
+            Uzytkownicy.adres_zamieszkania == Adresy.id
+        )
 
         if user_id not in session:
             return {"error": "Already logged out."}, 200
