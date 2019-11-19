@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 72143cf6948f
+Revision ID: 1ade6147b537
 Revises: 
-Create Date: 2019-11-18 19:56:34.855668
+Create Date: 2019-11-18 23:01:30.894282
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '72143cf6948f'
+revision = '1ade6147b537'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,7 +22,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('ulica', sa.VARCHAR(), nullable=True),
     sa.Column('miasto', sa.VARCHAR(), nullable=True),
-    sa.Column('kodPocztowy', sa.VARCHAR(), nullable=True),
+    sa.Column('kod_pocztowy', sa.VARCHAR(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('czynnosci',
@@ -50,16 +50,16 @@ def upgrade():
     op.create_table('zgloszenia',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('powod', sa.VARCHAR(), nullable=True),
-    sa.Column('organScigania', sa.VARCHAR(), nullable=True),
+    sa.Column('organ_scigania', sa.VARCHAR(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('aktywnosci',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('dataAktywnosci', sa.DateTime(), nullable=True),
-    sa.Column('idPracownika', sa.Integer(), nullable=True),
-    sa.Column('nazwaCzynnosci', sa.VARCHAR(), nullable=True),
-    sa.ForeignKeyConstraint(['idPracownika'], ['pracownicy.id'], ),
-    sa.ForeignKeyConstraint(['nazwaCzynnosci'], ['czynnosci.nazwa'], ),
+    sa.Column('data_aktywnosci', sa.DateTime(), nullable=True),
+    sa.Column('id_pracownika', sa.Integer(), nullable=True),
+    sa.Column('nazwa_czynnosci', sa.VARCHAR(), nullable=True),
+    sa.ForeignKeyConstraint(['id_pracownika'], ['pracownicy.id'], ),
+    sa.ForeignKeyConstraint(['nazwa_czynnosci'], ['czynnosci.nazwa'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('hasla',
@@ -74,39 +74,39 @@ def upgrade():
     sa.Column('imie', sa.VARCHAR(), nullable=True),
     sa.Column('nazwisko', sa.VARCHAR(), nullable=True),
     sa.Column('pesel', sa.VARCHAR(), nullable=True),
-    sa.Column('adresZamieszkania', sa.Integer(), nullable=True),
-    sa.Column('adresZameldowania', sa.Integer(), nullable=True),
+    sa.Column('adres_zamieszkania', sa.Integer(), nullable=True),
+    sa.Column('adres_zameldowania', sa.Integer(), nullable=True),
     sa.Column('pracownik', sa.Integer(), nullable=True),
     sa.Column('login', sa.VARCHAR(), nullable=True),
     sa.Column('haslo', sa.VARCHAR(), nullable=True),
-    sa.ForeignKeyConstraint(['adresZameldowania'], ['adresy.id'], ),
-    sa.ForeignKeyConstraint(['adresZamieszkania'], ['adresy.id'], ),
+    sa.ForeignKeyConstraint(['adres_zameldowania'], ['adresy.id'], ),
+    sa.ForeignKeyConstraint(['adres_zamieszkania'], ['adresy.id'], ),
     sa.ForeignKeyConstraint(['pracownik'], ['pracownicy.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('klienci',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('idUzytkownika', sa.Integer(), nullable=True),
-    sa.Column('idFirmy', sa.Integer(), nullable=True),
-    sa.Column('idKlientaIndywidualnego', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['idFirmy'], ['firmy.id'], ),
-    sa.ForeignKeyConstraint(['idKlientaIndywidualnego'], ['klienciindywidualni.id'], ),
-    sa.ForeignKeyConstraint(['idUzytkownika'], ['uzytkownicy.id'], ),
+    sa.Column('id_uzytkownika', sa.Integer(), nullable=True),
+    sa.Column('id_firmy', sa.Integer(), nullable=True),
+    sa.Column('id_klienta_indywidualnego', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['id_firmy'], ['firmy.id'], ),
+    sa.ForeignKeyConstraint(['id_klienta_indywidualnego'], ['klienciindywidualni.id'], ),
+    sa.ForeignKeyConstraint(['id_uzytkownika'], ['uzytkownicy.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('wnioski',
-    sa.Column('numerWniosku', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('numer_wniosku', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('decyzja', sa.VARCHAR(), nullable=True),
     sa.Column('klient_id', sa.Integer(), nullable=True),
     sa.Column('zgloszenie_id', sa.Integer(), nullable=True),
     sa.Column('pracownik', sa.Integer(), nullable=True),
-    sa.Column('wskPrzeterminowania', sa.DateTime(), nullable=True),
+    sa.Column('wsk_przeterminowania', sa.DateTime(), nullable=True),
     sa.Column('kwota', sa.FLOAT(precision=2), nullable=True),
-    sa.Column('rodzajWeryfikacji', sa.VARCHAR(), nullable=True),
+    sa.Column('rodzaj_weryfikacji', sa.VARCHAR(), nullable=True),
     sa.ForeignKeyConstraint(['klient_id'], ['klienci.id'], ),
     sa.ForeignKeyConstraint(['pracownik'], ['pracownicy.id'], ),
     sa.ForeignKeyConstraint(['zgloszenie_id'], ['zgloszenia.id'], ),
-    sa.PrimaryKeyConstraint('numerWniosku')
+    sa.PrimaryKeyConstraint('numer_wniosku')
     )
     # ### end Alembic commands ###
 

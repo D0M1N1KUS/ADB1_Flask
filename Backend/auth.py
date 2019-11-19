@@ -78,7 +78,7 @@ def register():
 
                 address = db.session.query(Adresy).filter(
                     Adresy.ulica == "Jedynasta" and Adresy.miasto == "Jedynascie" and
-                    Adresy.kodPocztowy == "11-111").one()
+                    Adresy.kod_pocztowy == "11-111").one()
 
                 new_user = Uzytkownicy(imie="Jan", nazwisko="Kowaslki", pesel="01234567890",
                                        adresZamieszkania=address.id,
@@ -152,7 +152,7 @@ def logout():
             return {"error": "Invalid request data."}, 400
         db = DbContainer.get_db()
         db.session.query(Uzytkownicy, Adresy).filter(
-            Uzytkownicy.adresZamieszkania == Adresy.id
+            Uzytkownicy.adres_zamieszkania == Adresy.id
         )
 
         if user_id not in session:
