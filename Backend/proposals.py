@@ -25,8 +25,8 @@ def get_proposals():
         k_klient = aliased(Klienci)
         p_pracownik = aliased(Pracownicy)
 
-        q = db.session.query(Wnioski.numer_wniosku, Wnioski.decyzja, u_klient.imie, u_klient.nazwisko,
-                             u_pracownik.imie, u_pracownik.nazwisko) \
+        q = db.session.query(Wnioski.numer_wniosku, u_klient.imie, u_klient.nazwisko, Wnioski.wsk_przeterminowania,
+                             Wnioski.kwota) \
             .outerjoin(p_pracownik, Wnioski.pracownik == p_pracownik.id) \
             .outerjoin(u_pracownik, p_pracownik.id == u_pracownik.pracownik) \
             .join(k_klient, Wnioski.klient_id == k_klient.id) \
@@ -35,13 +35,15 @@ def get_proposals():
         ret_json = []
         for row in q:
             wniosek_json = {
-                "user_id": 0,
-                "id": row[0],
-                "firstNameK": row[2],
-                "lastNameK": row[3],
-                "firstNameP": row[4],
-                "lastNameP": row[5],
-                "status": row[1]
+                "id": 0,
+                "applicationId": row[0],
+                "client": {
+                  "firstName": row[1],
+                  "lastName": row[2]
+                },
+                "data": row[3].strftime("%Y-%m-%d %H:%M:%S"),
+                "type": "NOT_IMPLEMENTED",
+                "amount": row[4]
             }
             ret_json.append(wniosek_json)
 
@@ -53,7 +55,7 @@ def get_proposals():
 @proposals_bp.route("/add", methods=("PUT", "POST", "GET"))
 def add_proposal():
     if request.method == "POST" or request.method == "PUT":
-        error = None
+        response = None
         try:
             json_request = request.get_json()
             parse_result = AddProposalParser.parse(json_request)
@@ -61,27 +63,35 @@ def add_proposal():
                 raise Exception(parse_result)
 
             db = DbContainer.get_db()
-            klient_pesel = json_request["pesel"]
             klient_user = db.session.query(Klienci.id).join(Uzytkownicy, Klienci.id_uzytkownika == Uzytkownicy.id)\
-                .filter(Uzytkownicy.pesel == json_request["pesel"]).first()
+                .filter(Uzytkownicy.imie == json_request["firstName"])\
+                .filter(Uzytkownicy.nazwisko == json_request["lastName"])\
+                .first()
 
             if klient_user is None:
-                return {"error": f"Given person is not a customer or does not exist: \"{json_request['name']} {json_request['surname']}\""}
+                return {"error": f"Given person is not a customer or does not exist: \"{json_request['firstName']} {json_request['lastName']}\""}
 
-            date_to_insert = None
-            if "wskPrzeterminowania" not in json_request:
-                date_to_insert = datetime.datetime.utcnow()
-            else:
-                date_to_insert = json_request["wskPrzeterminowania"]  # datetime.datetime.strptime(json_request["wskPrzeterminowania"], '%Y-%m-%d %H:%M:%S')
+            # date_to_insert = None
+            # if "wskPrzeterminowania" not in json_request:
+            date_to_insert = datetime.datetime.utcnow()
+            # else:
+            #     date_to_insert = json_request["wskPrzeterminowania"]  # datetime.datetime.strptime(json_request["wskPrzeterminowania"], '%Y-%m-%d %H:%M:%S')
             # next_month = datetime.datetime.now()+datetime.timedelta(days=30)
-            new_proposal = Wnioski(numerWniosku=json_request["numerWniosku"], kwota=json_request["amount"],
+            new_proposal = Wnioski(numerWniosku=None, kwota=json_request["amount"],
                                    wskPrzetwarzania=date_to_insert, decyzja='ZGLOSZONY', klient=klient_user.id, pracownik=None,
                                    rodzajWeryfikacji=None, zgloszeniaId=None)
 
             db.session.add(new_proposal)
             db.session.commit()
-            return {"success": 1}, 200
+            response = {"success": 1}, 200
         except Exception as e:
-            return {"error": f"Invalid request: {str(e)}"}, 400
+            response = {"error": f"Invalid request: {str(e)}"}, 400
+        finally:
+            if db is not None:
+                db.session.close()
+
+        return response
+
+
     else:
         return {"error": f"Unsupported method{request.method}"}, 400
