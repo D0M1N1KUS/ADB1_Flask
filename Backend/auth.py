@@ -1,6 +1,6 @@
 import functools, json
 from db import DbContainer
-from tables import Uzytkownicy, Hasla, Adresy
+from tables import Uzytkownicy, Adresy
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 from flask import Blueprint, redirect, session, request, flash, jsonify, g
 from flask_sqlalchemy import SQLAlchemy

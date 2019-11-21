@@ -15,7 +15,7 @@ class Zgloszenia(t_db.Model):
 
     def __init__(self, powod, organScigania):
         self.powod = powod
-        self.organScigania = organScigania
+        self.organ_scigania = organScigania
 
     def __repr__(self):
         return '<id {}'.format(self.id)
@@ -24,7 +24,6 @@ class Zgloszenia(t_db.Model):
 class Czynnosci(t_db.Model):
     __tablename__ = 'czynnosci'
 
-    # id = t_db.Column(t_db.Integer, primary_key=True, autoincrement=True)
     nazwa = t_db.Column(t_db.VARCHAR, primary_key=True)
     punktacja = t_db.Column(t_db.Integer)
 
@@ -63,17 +62,14 @@ class Pracownicy(t_db.Model):
     __tablename__ = 'pracownicy'
 
     id = t_db.Column(t_db.Integer, primary_key=True, autoincrement=True)
-    login = t_db.Column(t_db.VARCHAR)
     stanowisko = t_db.Column(t_db.VARCHAR)
-    uzytkownik = t_db.Column(t_db.INTEGER)
 
     uzytkownicy_rel = t_db.relationship("Uzytkownicy", backref="pracownicy", uselist=False)
     aktywnosci_rel = t_db.relationship("Aktywnosci", backref="pracownicy")
+    wnioski_rel = t_db.relationship("Wnioski", backref="pracownicy")
 
-    def __init__(self, stanowisko, uzytkownik, login):
+    def __init__(self, stanowisko):
         self.stanowisko = stanowisko
-        self.uzytkownik = uzytkownik
-        self.login
 
     def __repr__(self):
         return '<id {}'.format(self.id)
@@ -86,7 +82,6 @@ class Adresy(t_db.Model):
     ulica = t_db.Column(t_db.VARCHAR)
     miasto = t_db.Column(t_db.VARCHAR)
     kod_pocztowy = t_db.Column(t_db.VARCHAR)
-    # uzytkownicy_rel = t_db.relationship("Uzytkownicy", foreign_keys=[adresZamieszkania], backref="adresy", uselist=False)
 
     def __init__(self, ulica, miasto, kodPocztowy):
         self.ulica = ulica
@@ -95,6 +90,14 @@ class Adresy(t_db.Model):
 
     def __repr__(self):
         return '<id {}'.format(self.id)
+
+    def __eq__(self, other):
+        try:
+            return (self.ulica == other.ulica and
+                    self.miasto == other.miasto and
+                    self.kod_pocztowy == other.kod_pocztowy)
+        except:
+            return False
 
 
 class Uzytkownicy(t_db.Model):
@@ -106,14 +109,15 @@ class Uzytkownicy(t_db.Model):
     pesel = t_db.Column(t_db.VARCHAR)
     adres_zamieszkania = t_db.Column(t_db.Integer, t_db.ForeignKey('adresy.id'))
     adres_zameldowania = t_db.Column(t_db.Integer, t_db.ForeignKey('adresy.id'))
-    pracownik = t_db.Column(t_db.Integer, t_db.ForeignKey('pracownicy.id'), nullable=True)
+    pracownik = t_db.Column(t_db.Integer, t_db.ForeignKey('pracownicy.id'),
+                            nullable=True)  # if null the user is a customer
     login = t_db.Column(t_db.VARCHAR)
     haslo = t_db.Column(t_db.VARCHAR)
 
     pracownicy_rel = t_db.relationship("Pracownicy", backref="uzytkownicy", uselist=False)
+    wnioski_rel = t_db.relationship("Wnioski", backref="uzytkownicy")
     adres_zamieszkania_rel = t_db.relationship("Adresy", foreign_keys=[adres_zamieszkania], uselist=False)
     adres_zameldowania_rel = t_db.relationship("Adresy", foreign_keys=[adres_zameldowania], uselist=False)
-    klienci_rel = t_db.relationship("Klienci", backref="uzytkownicy", uselist=False)
 
     def __init__(self, imie, nazwisko, pesel, adresZamieszkania, adresZameldowania, login, haslo, pracownik):
         self.imie = imie
@@ -129,99 +133,33 @@ class Uzytkownicy(t_db.Model):
         return '<id {}'.format(self.id)
 
 
-class KlienciIndywidualni(t_db.Model):
-    __tablename__ = 'klienciindywidualni'
-
-    id = t_db.Column(t_db.Integer, primary_key=True, autoincrement=True)
-    klienci_rel = t_db.relationship("Klienci", backref="klienciindywidualni", uselist=False)
-
-    def __init__(self):
-        pass
-
-    def __repr__(self):
-        return '<id {}'.format(self.id)
-
-
-class Klienci(t_db.Model):
-    __tablename__ = 'klienci'
-
-    id = t_db.Column(t_db.Integer, primary_key=True, autoincrement=True)
-    id_uzytkownika = t_db.Column(t_db.Integer, t_db.ForeignKey('uzytkownicy.id'), nullable=True)
-    id_firmy = t_db.Column(t_db.Integer, t_db.ForeignKey('firmy.id'), nullable=True)
-    id_klienta_indywidualnego = t_db.Column(t_db.Integer, t_db.ForeignKey('klienciindywidualni.id'))
-
-    uztykownicy_rel = t_db.relationship("Uzytkownicy", backref="klienci", uselist=False)
-    wnioski_rel = t_db.relationship("Wnioski", backref="klienci")
-    klienci_indywidualni_rel = t_db.relationship("KlienciIndywidualni", backref="klienci", uselist=False)
-    firmy_rel = t_db.relationship("Firmy", backref="klienci", uselist=False)
-
-    def __init__(self, idUzytkownika, idFilmy, idKlientaIndywidualnego):
-        self.id_uzytkownika = idUzytkownika
-        self.id_firmy = idFilmy
-        self.id_klienta_indywidualnego = idKlientaIndywidualnego
-
-    def __repr__(self):
-        return '<id {}'.format(self.id)
-
-
-class Firmy(t_db.Model):
-    __tablename__ = 'firmy'
-
-    id = t_db.Column(t_db.Integer, primary_key=True, autoincrement=True)
-    nazwa = t_db.Column(t_db.VARCHAR)
-    nip = t_db.Column(t_db.VARCHAR)
-
-    klienci_rel = t_db.relationship("Klienci", backref="firmy", uselist=False)
-
-    def __init__(self, nazwa, nip):
-        self.nazwa = nazwa
-        self.nip = nip
-
-    def __repr__(self):
-        return '<id {}'.format(self.id)
-
-
 class Wnioski(t_db.Model):
     __tablename__ = 'wnioski'
 
     numer_wniosku = t_db.Column(t_db.Integer, primary_key=True, autoincrement=True)
     decyzja = t_db.Column(t_db.VARCHAR)
-    klient_id = t_db.Column(t_db.Integer, t_db.ForeignKey('klienci.id'), nullable=True)
+    typ_kredytu = t_db.Column(t_db.VARCHAR)
+    uzytkownik_id = t_db.Column(t_db.Integer, t_db.ForeignKey('uzytkownicy.id'), nullable=True)
     zgloszenie_id = t_db.Column(t_db.Integer, t_db.ForeignKey('zgloszenia.id'), nullable=True)
-    pracownik = t_db.Column(t_db.Integer, t_db.ForeignKey('pracownicy.id'), nullable=True)
+    pracownik_id = t_db.Column(t_db.Integer, t_db.ForeignKey('pracownicy.id'), nullable=True)
 
-    wsk_przeterminowania = t_db.Column(t_db.DateTime)
+    data = t_db.Column(t_db.DateTime)
     kwota = t_db.Column(t_db.FLOAT(precision=2))
-    rodzaj_weryfikacji = t_db.Column(t_db.VARCHAR, nullable=True)
+    typ_kredytu = t_db.Column(t_db.VARCHAR, nullable=True)
 
-    klient_rel = t_db.relationship("Klienci", backref="wnioski")
+    uzytkownik_rel = t_db.relationship("Uzytkownicy", foreign_keys=[uzytkownik_id], backref="wnioski")
+    pracownik_rel = t_db.relationship("Pracownicy", foreign_keys=[pracownik_id], backref="wnioski")
     zgloszenia_rel = t_db.relationship("Zgloszenia", backref="wnioski", uselist=False)
 
-    def __init__(self, numerWniosku, decyzja, klient, pracownik, wskPrzetwarzania, kwota, rodzajWeryfikacji, zgloszeniaId):
+    def __init__(self, numerWniosku, decyzja, uzytkownik_id, pracownik_id, data, kwota, typ_kredytu, zgloszeniaId):
         self.decyzja = decyzja
-        self.klient_id = klient
-        self.pracownik = pracownik
-        self.wsk_przeterminowania = wskPrzetwarzania
+        self.uzytkownik_id = uzytkownik_id
+        self.pracownik_id = pracownik_id
+        self.data = data
         self.kwota = kwota
-        self.rodzaj_weryfikacji = rodzajWeryfikacji
+        self.typ_kredytu = typ_kredytu
         self.zgloszenie_id = zgloszeniaId
         self.numer_wniosku = numerWniosku
 
     def __repr__(self):
         return '<id {}'.format(self.id)
-
-
-class Hasla(t_db.Model):
-    __tablename__ = 'hasla'
-
-    id = t_db.Column(t_db.Integer, primary_key=True, autoincrement=True)
-    haslo = t_db.Column(t_db.VARCHAR)
-    id_uzytkownika = t_db.Column(t_db.Integer, t_db.ForeignKey('pracownicy.id'))
-
-    def __init__(self, haslo, id_uzytkownika):
-        self.haslo = haslo
-        self.id_uzytkownika = id_uzytkownika
-
-    def __repr__(self):
-        return '<id {}'.format(self.id)
-
