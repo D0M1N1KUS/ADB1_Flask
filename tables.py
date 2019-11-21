@@ -15,7 +15,7 @@ class Zgloszenia(t_db.Model):
 
     def __init__(self, powod, organScigania):
         self.powod = powod
-        self.organScigania = organScigania
+        self.organ_scigania = organScigania
 
     def __repr__(self):
         return '<id {}'.format(self.id)

@@ -39,9 +39,9 @@ def get_proposals():
             }
             ret_json.append(wniosek_json)
 
-        return json.dumps(ret_json)
+        return json.dumps(ret_json), 200
     else:
-        return {"error": "Unsupported method"}
+        return {"error": "Unsupported method"}, 400
 
 
 @proposals_bp.route("/add", methods=("PUT", "POST", "GET"))
@@ -103,7 +103,7 @@ def add_proposal():
             else:
                 application_id = None
 
-            new_proposal = Wnioski(numerWniosku=application_id, decyzja='ZGLOSZONY',
+            new_proposal = Wnioski(numerWniosku=application_id, decyzja='NIEROZPATRZONY',
                                    typ_kredytu=json_request["loanType"], uzytkownik_id=user.id, zgloszeniaId=None,
                                    data=date_to_insert, kwota=json_request["amount"], pracownik_id=None)
 
