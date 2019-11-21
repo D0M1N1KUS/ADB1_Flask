@@ -17,3 +17,10 @@ POSTGRES_DB = 'abd'
 >python manage.py db migrate
 >python manage.py db upgrade
 ```
+
+ * To purge the database and insert demo data send the following request:
+ ```
+curl -X GET http://127.0.0.1:5000/reinitdb/
+```
+
+
