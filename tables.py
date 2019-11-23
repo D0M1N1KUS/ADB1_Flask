@@ -138,7 +138,7 @@ class Wnioski(t_db.Model):
 
     numer_wniosku = t_db.Column(t_db.Integer, primary_key=True, autoincrement=True)
     decyzja = t_db.Column(t_db.VARCHAR)
-    typ_kredytu = t_db.Column(t_db.VARCHAR)
+
     uzytkownik_id = t_db.Column(t_db.Integer, t_db.ForeignKey('uzytkownicy.id'), nullable=True)
     zgloszenie_id = t_db.Column(t_db.Integer, t_db.ForeignKey('zgloszenia.id'), nullable=True)
     pracownik_id = t_db.Column(t_db.Integer, t_db.ForeignKey('pracownicy.id'), nullable=True)

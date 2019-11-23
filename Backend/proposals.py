@@ -27,7 +27,6 @@ def get_proposals():
         ret_json = []
         for row in q:
             wniosek_json = {
-                "id": 0,
                 "applicationId": row[0],
                 "client": {
                   "firstName": row[1],
@@ -118,6 +117,5 @@ def add_proposal():
 
         return response
 
-
     else:
-        return {"error": f"Unsupported method{request.method}"}, 400
+        return {"error": f"Unsupported method{request.method}"}, 405
