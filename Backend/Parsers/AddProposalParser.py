@@ -1,4 +1,4 @@
-import sys, re
+import re
 from Backend.Parsers.AddressParser import AddressParser
 
 class AddProposalParser:
