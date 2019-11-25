@@ -16,42 +16,49 @@ import sys
 proposals_bp = Blueprint("proposals", __name__, url_prefix="/application/proposals")
 
 
+@proposals_bp.route("/getone", methods=("POST", "GET"))
+def get_one():
+
+    if not request.method == "POST":
+        return {"error": f"Unsupported method: {request.method}"}, 400
+
+    db = DbContainer.get_db()
+
+    try:
+        json_request = request.get_json()
+        proposal_id = json_request["applicationId"]
+        mailing_address_al = aliased(Adresy)
+        home_address_al = aliased(Adresy)
+        q = db.session.query(Wnioski.typ_kredytu, Wnioski.kwota, Uzytkownicy.imie,
+                             Uzytkownicy.nazwisko, home_address_al.ulica, home_address_al.miasto,
+                             home_address_al.kod_pocztowy, mailing_address_al.ulica,
+                             mailing_address_al.miasto, mailing_address_al.kod_pocztowy) \
+            .join(Uzytkownicy, Wnioski.uzytkownik_id == Uzytkownicy.id) \
+            .join(mailing_address_al, Uzytkownicy.adres_zameldowania == mailing_address_al.id) \
+            .join(home_address_al, Uzytkownicy.adres_zamieszkania == home_address_al.id) \
+            .filter(Wnioski.numer_wniosku == proposal_id).first()
+        if q is None:
+            return {"error": f"Unable to find proposal with id [{json_request['applicationId']}]"}
+        return {
+            "clientType": "person",
+            "loanType": q[0],
+            "amount": q[1],
+            "firstName": q[2],
+            "lastName": q[3],
+            "homeStreet": q[4],
+            "homeCity": q[5],
+            "homePostalCode": q[6],
+            "mailingStreet": q[7],
+            "mailingCity": q[8],
+            "mailingPostalCode": q[9]
+        }
+    except Exception as e:
+        return {"error": str(e)}, 400
+
 @proposals_bp.route("/", methods=("POST", "GET"))
 def get_proposals():
     if request.method == "GET":
         db = DbContainer.get_db()
-
-        try:
-            json_request = request.get_json()
-            proposal_id = json_request["applicationId"]
-            mailing_address_al = aliased(Adresy)
-            home_address_al = aliased(Adresy)
-            q = db.session.query(Wnioski.typ_kredytu, Wnioski.kwota, Uzytkownicy.imie,
-                                 Uzytkownicy.nazwisko, home_address_al.ulica, home_address_al.miasto,
-                                 home_address_al.kod_pocztowy, mailing_address_al.ulica,
-                                 mailing_address_al.miasto, mailing_address_al.kod_pocztowy)\
-                .join(Uzytkownicy, Wnioski.uzytkownik_id == Uzytkownicy.id)\
-                .join(mailing_address_al, Uzytkownicy.adres_zameldowania == mailing_address_al.id)\
-                .join(home_address_al, Uzytkownicy.adres_zamieszkania == home_address_al.id)\
-                .filter(Wnioski.numer_wniosku == proposal_id).first()
-            if q is None:
-                return {"error": f"Unable to find proposal with id [{json_request['applicationId']}]"}
-            return json.dumps({
-                "clientType": "person",
-                "loanType": q[0],
-                "amount": q[1],
-                "firstName": q[2],
-                "lastName": q[3],
-                "homeStreet": q[4],
-                "homeCity": q[5],
-                "homePostalCode": q[6],
-                "mailingStreet": q[7],
-                "mailingCity": q[8],
-                "mailingPostalCode": q[9]
-            })
-        except:
-            pass  # ok, no json in request
-
         q = db.session.query(Wnioski.numer_wniosku, Uzytkownicy.imie, Uzytkownicy.nazwisko, Wnioski.data,
                              Wnioski.typ_kredytu, Wnioski.kwota)\
             .filter(Wnioski.uzytkownik_id == Uzytkownicy.id)
