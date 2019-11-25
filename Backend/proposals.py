@@ -1,5 +1,6 @@
 import functools, json, datetime
 from db import DbContainer
+from Backend.DataClasses.Decyzja import Decyzja
 from tables import Uzytkownicy, Adresy, Wnioski, Pracownicy
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 from flask import Blueprint, redirect, session, request, flash, jsonify, g
@@ -33,6 +34,8 @@ def get_proposals():
                 .join(mailing_address_al, Uzytkownicy.adres_zameldowania == mailing_address_al.id)\
                 .join(home_address_al, Uzytkownicy.adres_zamieszkania == home_address_al.id)\
                 .filter(Wnioski.numer_wniosku == proposal_id).first()
+            if q is None:
+                return {"error": f"Unable to find proposal with id [{json_request['applicationId']}]"}
             return json.dumps({
                 "clientType": "person",
                 "loanType": q[0],
@@ -153,12 +156,38 @@ def add_proposal():
 @proposals_bp.route("/take_action", methods=("POST", "GET"))
 def take_action():
     if request.method == "POST":
-        json_request = request.get_json()
-        if "applicationId" not in json_request:
-            raise Exception("\"applicationId\" can\'t be null!")
-        if "decision" not in json_request:
-            raise Exception("\"decision\" can\'t be null!")
+        try:
+            json_request = request.get_json()
+            if "applicationId" not in json_request:
+                raise Exception("\"applicationId\" can\'t be null!")
+            if "decision" not in json_request:
+                raise Exception("\"decision\" can\'t be null!")
 
+            db = DbContainer.get_db()
+
+            wniosek = db.session.query(Wnioski)\
+                .filter(Wnioski.numer_wniosku == json_request["applicationId"]).first()
+
+            if wniosek is None:
+                return {"error": f"Unable to find proposal with id [{json_request['applicationId']}]"}
+            # if not wniosek.decyzja == Decyzja.NIEROZPATRZONY:
+            #    return {"error": f"Action already taken for proposal with id [{json_request['applicationId']}] - \"{wniosek.decyzja}\""}
+
+            decision = json_request["decision"]
+
+            if decision == Decyzja.NEGATYWNY or decision == Decyzja.POZYTYWNY:
+                wniosek.decyzja = decision
+            else:
+                return {"error": f"Invaid decision: \"{decision}\". Possible decisions: {Decyzja.POZYTYWNY}, {Decyzja.NEGATYWNY}."}
+
+            db.session.commit()
+            return {"success": 1}, 200
+        except Exception as e:
+            print("An error occurred. Performing rollback...")
+            db = DbContainer.get_db()
+            db.session.rollback()
+            db.session.close()
+            return {"error": f"Invalid request: {str(e)}"}
 
     else:
         return {"error": "Unsupported method"}, 400
