@@ -20,6 +20,35 @@ def get_proposals():
     if request.method == "GET":
         db = DbContainer.get_db()
 
+        try:
+            json_request = request.get_json()
+            proposal_id = json_request["applicationId"]
+            mailing_address_al = aliased(Adresy)
+            home_address_al = aliased(Adresy)
+            q = db.session.query(Wnioski.typ_kredytu, Wnioski.kwota, Uzytkownicy.imie,
+                                 Uzytkownicy.nazwisko, home_address_al.ulica, home_address_al.miasto,
+                                 home_address_al.kod_pocztowy, mailing_address_al.ulica,
+                                 mailing_address_al.miasto, mailing_address_al.kod_pocztowy)\
+                .join(Uzytkownicy, Wnioski.uzytkownik_id == Uzytkownicy.id)\
+                .join(mailing_address_al, Uzytkownicy.adres_zameldowania == mailing_address_al.id)\
+                .join(home_address_al, Uzytkownicy.adres_zamieszkania == home_address_al.id)\
+                .filter(Wnioski.numer_wniosku == proposal_id).first()
+            return json.dumps({
+                "clientType": "person",
+                "loanType": q[0],
+                "amount": q[1],
+                "firstName": q[2],
+                "lastName": q[3],
+                "homeStreet": q[4],
+                "homeCity": q[5],
+                "homePostalCode": q[6],
+                "mailingStreet": q[7],
+                "mailingCity": q[8],
+                "mailingPostalCode": q[9]
+            })
+        except:
+            pass  # ok, no json in request
+
         q = db.session.query(Wnioski.numer_wniosku, Uzytkownicy.imie, Uzytkownicy.nazwisko, Wnioski.data,
                              Wnioski.typ_kredytu, Wnioski.kwota)\
             .filter(Wnioski.uzytkownik_id == Uzytkownicy.id)
@@ -119,3 +148,17 @@ def add_proposal():
 
     else:
         return {"error": f"Unsupported method{request.method}"}, 405
+
+
+@proposals_bp.route("/take_action", methods=("POST", "GET"))
+def take_action():
+    if request.method == "POST":
+        json_request = request.get_json()
+        if "applicationId" not in json_request:
+            raise Exception("\"applicationId\" can\'t be null!")
+        if "decision" not in json_request:
+            raise Exception("\"decision\" can\'t be null!")
+
+
+    else:
+        return {"error": "Unsupported method"}, 400
