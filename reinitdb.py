@@ -69,12 +69,17 @@ def insert_demo_data():
                            pracownik_id=pracownik2.id, data=datetime.datetime.utcnow(), kwota=100000.0,
                            typ_kredytu='hipotetyczny', zgloszeniaId=None)
 
+        wniosek5 = Wnioski(numerWniosku=None, decyzja='NIEROZPATRZONY', uzytkownik_id=uzytkownik2.id,
+                           pracownik_id=None, data=datetime.datetime.utcnow(), kwota=100000.0,
+                           typ_kredytu='hipotetyczny', zgloszeniaId=None)
+
         zgloszenie = Zgloszenia(powod="Za maly dochod", organScigania="policja")
 
         db.session.add(wniosek1)
         db.session.add(wniosek2)
         db.session.add(wniosek3)
         db.session.add(wniosek4)
+        db.session.add(wniosek5)
         db.session.add(zgloszenie)
         db.session.flush()
 

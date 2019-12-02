@@ -4,7 +4,7 @@ from tables import *
 from Backend.Parsers.AddFraudParser import AddFraudParser
 from db import DbContainer
 from Backend.DataClasses.Decyzja import Decyzja
-import json
+import json, time
 
 frauds_bp = Blueprint("frauds", __name__, url_prefix="/application/frauds")
 
@@ -13,6 +13,9 @@ frauds_bp = Blueprint("frauds", __name__, url_prefix="/application/frauds")
 def report_fraud():
     if request.method == "POST":
         db = DbContainer.get_db()
+        engine = DbContainer.get_engine()
+        connection = engine.connect()
+
         response = None
         try:
             json_request = request.get_json()
@@ -22,9 +25,10 @@ def report_fraud():
                 raise Exception(parse_result)
 
             wniosek = db.session.query(Wnioski)\
-                .filter(Wnioski.numer_wniosku == json_request["applicationId"]).first()
+                .filter(Wnioski.numer_wniosku == json_request["applicationId"]).with_for_update().first()
 
             if wniosek is not None:
+                #connection.execute("LOCK zgloszenia EXCLUSIVE")
                 if wniosek.pracownik_id is None:
                     # raise Exception(f"The porpopsal with id [{wniosek.numerWniosku}] has no staff memmber assigned.")
                     staffmembers = db.session.query(Pracownicy.id).all()
@@ -38,6 +42,7 @@ def report_fraud():
                 db.session.add(fraud_report)
                 db.session.flush()
 
+                time.sleep(5)
                 wniosek.zgloszenie_id = fraud_report.id
                 wniosek.decyzja = Decyzja.ZGLOSZONY
                 db.session.commit()
@@ -51,6 +56,8 @@ def report_fraud():
             print("An error occurred. Performing rollback...")
             db.session.rollback()
             db.session.close()
+        #finally:
+            #connection.execute("UNLOCK TABLES")
     elif request.method == "GET":
         db = DbContainer.get_db()
         q = db.session.query(Wnioski, Uzytkownicy.imie, Uzytkownicy.nazwisko, Zgloszenia.powod,

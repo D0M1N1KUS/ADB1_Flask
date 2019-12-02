@@ -1,6 +1,7 @@
 from flask import Flask
 import psycopg2
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
 import config
 
 
@@ -9,6 +10,7 @@ class DbContainer:
 
     db = None
     app = None
+    engine = None
 
     @staticmethod
     def get_db():
@@ -39,3 +41,10 @@ class DbContainer:
     def close_db(e=None):
         if DbContainer.db is not None:
             DbContainer.db.Close()
+
+    @staticmethod
+    def get_engine():
+        if DbContainer.engine is None:
+            DbContainer.engine = create_engine(config.DB_URL)
+        return DbContainer.engine
+

@@ -55,6 +55,7 @@ def get_one():
     except Exception as e:
         return {"error": str(e)}, 400
 
+
 @proposals_bp.route("/", methods=("POST", "GET"))
 def get_proposals():
     if request.method == "GET":
